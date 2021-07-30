@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 @ServerEndpoint(value = "/webSocket/{uid}")
-@Component
+//@Component
 @Slf4j
 public class WebSocketServer {
 

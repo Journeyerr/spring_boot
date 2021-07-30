@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * @author AnYuan
  */
 
-@Component
+//@Component
 @Slf4j
 public class NettyServer {
     public void start(InetSocketAddress address) {

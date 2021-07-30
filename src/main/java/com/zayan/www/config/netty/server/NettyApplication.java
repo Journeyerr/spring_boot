@@ -13,7 +13,7 @@ import java.net.InetSocketAddress;
  * @author AnYuan
  */
 
-@SpringBootApplication
+//@SpringBootApplication
 public class NettyApplication implements CommandLineRunner {
 
     @Value("${netty.port}")
