@@ -18,7 +18,9 @@ import com.zayan.www.service.SkusService;
 import com.zayan.www.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -37,8 +39,9 @@ public class SecKillOrderController {
     private AopTestService aopTestService;
     @Autowired
     private SkusService skusService;
+    @Qualifier("stringRedisTemplate")
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private SeckillOrderService seckillOrderService;
     @Autowired
@@ -49,7 +52,7 @@ public class SecKillOrderController {
     @GetMapping("/int/stock/{skuNo}")
     public BaseResult<?> intStock(@PathVariable Integer skuNo) {
         Skus skus = skusService.getByNo(skuNo);
-        redisTemplate.opsForValue().set(RedisConstant.secKillSkuStockKey(skuNo.toString()), skus.getStock().toString());
+        stringRedisTemplate.opsForValue().set(RedisConstant.secKillSkuStockKey(skuNo.toString()), skus.getStock().toString());
         return BaseResult.success();
     }
 
@@ -57,7 +60,7 @@ public class SecKillOrderController {
     public BaseResult<?> create(@Valid @RequestBody SecKillOrderCreateForm createForm) {
 
         // redis 校验库存
-        String stock = redisTemplate.opsForValue().get(RedisConstant.secKillSkuStockKey(createForm.getSkuNo().toString()));
+        String stock = stringRedisTemplate.opsForValue().get(RedisConstant.secKillSkuStockKey(createForm.getSkuNo().toString()));
         if (Objects.isNull(stock) || Integer.valueOf(stock).compareTo(0) < 1) {
             return BaseResult.error("Stock Is Null");
         }
@@ -67,7 +70,7 @@ public class SecKillOrderController {
         // trace=> status（成功 or 未下单 or 失败） 存入redis
         String secKillTraceIdKey = RedisConstant.secKillTraceIdKey(traceId);
 
-        redisTemplate.opsForValue().set(secKillTraceIdKey, SecKillTraceIdStatusEnum.NO_SUBMIT.getCode());
+        stringRedisTemplate.opsForValue().set(secKillTraceIdKey, SecKillTraceIdStatusEnum.NO_SUBMIT.getCode());
         createForm.setTraceId(traceId);
 
         // 放入mq
@@ -88,7 +91,7 @@ public class SecKillOrderController {
     public BaseResult<?> checkStatus(@PathVariable String traceId) {
 
         String secKillTraceIdKey = RedisConstant.secKillTraceIdKey(traceId);
-        String s = redisTemplate.opsForValue().get(secKillTraceIdKey);
+        String s = stringRedisTemplate.opsForValue().get(secKillTraceIdKey);
         if (Objects.isNull(s)) {
             return BaseResult.error("Forbiddent");
         }
@@ -117,8 +120,8 @@ public class SecKillOrderController {
         boolean update = seckillOrderService.updateById(seckillOrder);
         if (update) {
             String secKillTraceIdKey = RedisConstant.secKillTraceIdKey(paymentForm.getNo());
-            redisTemplate.opsForValue().set(secKillTraceIdKey, SecKillTraceIdStatusEnum.PAID.name());
-            redisTemplate.expire(secKillTraceIdKey, 1, TimeUnit.DAYS);
+            stringRedisTemplate.opsForValue().set(secKillTraceIdKey, SecKillTraceIdStatusEnum.PAID.name());
+            stringRedisTemplate.expire(secKillTraceIdKey, 1, TimeUnit.DAYS);
 
             skusMapper.decrementStock(seckillOrder.getSkuNo());
             return BaseResult.success(seckillOrder);

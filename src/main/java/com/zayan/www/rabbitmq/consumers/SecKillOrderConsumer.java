@@ -19,7 +19,9 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -38,7 +40,8 @@ import java.util.concurrent.TimeUnit;
 public class SecKillOrderConsumer {
 
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    @Qualifier("stringRedisTemplate")
+    private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private SeckillOrderService seckillOrderService;
 
@@ -56,9 +59,9 @@ public class SecKillOrderConsumer {
         String stockKey = RedisConstant.secKillSkuStockKey(createForm.getSkuNo().toString());
         String traceIdKey = RedisConstant.secKillTraceIdKey(createForm.getTraceId());
 
-        Long decrementStock = redisTemplate.opsForValue().decrement(stockKey);
+        Long decrementStock = stringRedisTemplate.opsForValue().decrement(stockKey);
         if (Objects.isNull(decrementStock) || decrementStock.compareTo(0L) < 0) {
-            redisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.FAIL.getCode());
+            stringRedisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.FAIL.getCode());
             return;
         }
 
@@ -70,12 +73,12 @@ public class SecKillOrderConsumer {
 
         boolean save = seckillOrderService.save(seckillOrder);
         if (save) {
-            redisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.SUBMIT.getCode());
+            stringRedisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.SUBMIT.getCode());
         }else {
-            redisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.FAIL.getCode());
-            redisTemplate.opsForValue().increment(stockKey);
+            stringRedisTemplate.opsForValue().set(traceIdKey, SecKillTraceIdStatusEnum.FAIL.getCode());
+            stringRedisTemplate.opsForValue().increment(stockKey);
         }
-        redisTemplate.expire(traceIdKey, 1, TimeUnit.DAYS);
+        stringRedisTemplate.expire(traceIdKey, 1, TimeUnit.DAYS);
 
         log.info("SecKillOrderConsumer 消费完成----->{}", createForm.getTraceId());
     }
