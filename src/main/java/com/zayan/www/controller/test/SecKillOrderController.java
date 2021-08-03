@@ -39,7 +39,6 @@ public class SecKillOrderController {
     private AopTestService aopTestService;
     @Autowired
     private SkusService skusService;
-    @Qualifier("stringRedisTemplate")
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired

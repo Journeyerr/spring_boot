@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class RedisTwoProperties {
 
     private String host;
+    private String password;
     private int port;
     private int timeout;
     private int database;

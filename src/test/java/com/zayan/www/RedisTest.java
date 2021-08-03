@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.concurrent.TimeUnit;
 
@@ -13,20 +14,24 @@ import java.util.concurrent.TimeUnit;
 public class RedisTest {
 
     @Autowired
-    @Qualifier("stringRedisTemplate")
+    @Qualifier("redisTemplateLocal")
+    private RedisTemplate<String, String> redisTemplateLocal;
+
+    @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
-    @Qualifier("stringRedisTwoTemplate")
-    private RedisTemplate<String, String> redisTwoTemplate;
+    private StringRedisTemplate stringRedisTemplate;
+
+
 
     @Test
     public void redisTest() {
         System.out.println("start----------");
-        redisTemplate.opsForValue().set("redis", "success", 1, TimeUnit.DAYS);
-        redisTwoTemplate.opsForValue().set("twoRedis", "success", 1, TimeUnit.DAYS);
+        redisTemplateLocal.opsForValue().set("redisTemplateLocal", "success", 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("redisTemplate", "success", 1, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().set("stringRedisTemplate", "success", 1, TimeUnit.DAYS);
         System.out.println("end----------");
 
     }
-
 }

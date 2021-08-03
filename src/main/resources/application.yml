@@ -54,6 +54,7 @@ spring:
     database: 0
   redis-two:
     host: localhost
+    password:
     port: 6380
     timeout: 2000
     database: 0
