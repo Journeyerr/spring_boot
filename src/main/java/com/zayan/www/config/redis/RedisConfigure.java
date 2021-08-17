@@ -23,31 +23,31 @@ import java.time.Duration;
 public class RedisConfigure extends CachingConfigurerSupport {
 
     @Autowired
-    private RedisTwoProperties redisTwoProperties;
+    private UserRedisProperties userRedisProperties;
 
     @Bean
     public <T> RedisTemplate<String, T> redisTemplateLocal() {
 
         // 基本配置
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName(redisTwoProperties.getHost());
-        configuration.setPort(redisTwoProperties.getPort());
-        configuration.setDatabase(redisTwoProperties.getDatabase());
-        if (ObjectUtils.isNotEmpty(redisTwoProperties.getPassword())) {
-            configuration.setPassword(RedisPassword.of(redisTwoProperties.getPassword()));
+        configuration.setHostName(userRedisProperties.getHost());
+        configuration.setPort(userRedisProperties.getPort());
+        configuration.setDatabase(userRedisProperties.getDatabase());
+        if (ObjectUtils.isNotEmpty(userRedisProperties.getPassword())) {
+            configuration.setPassword(RedisPassword.of(userRedisProperties.getPassword()));
         }
 
         // 连接池配置
         GenericObjectPoolConfig<Object> genericObjectPoolConfig = new GenericObjectPoolConfig<>();
-        genericObjectPoolConfig.setMaxTotal(redisTwoProperties.getMaxActive());
-        genericObjectPoolConfig.setMaxWaitMillis(redisTwoProperties.getMaxWait());
-        genericObjectPoolConfig.setMaxIdle(redisTwoProperties.getMaxIdle());
-        genericObjectPoolConfig.setMinIdle(redisTwoProperties.getMinIdle());
+        genericObjectPoolConfig.setMaxTotal(userRedisProperties.getMaxActive());
+        genericObjectPoolConfig.setMaxWaitMillis(userRedisProperties.getMaxWait());
+        genericObjectPoolConfig.setMaxIdle(userRedisProperties.getMaxIdle());
+        genericObjectPoolConfig.setMinIdle(userRedisProperties.getMinIdle());
 
         // lettuce pool
         LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder builder = LettucePoolingClientConfiguration.builder();
         builder.poolConfig(genericObjectPoolConfig);
-        builder.commandTimeout(Duration.ofSeconds(redisTwoProperties.getTimeout()));
+        builder.commandTimeout(Duration.ofSeconds(userRedisProperties.getTimeout()));
         LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(configuration, builder.build());
 
         lettuceConnectionFactory.afterPropertiesSet();

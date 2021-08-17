@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-@ConfigurationProperties( prefix = "spring.redis-two")
-public class RedisTwoProperties {
+@ConfigurationProperties( prefix = "spring.redis-user")
+public class UserRedisProperties {
 
     private String host;
     private String password;
